@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beli Token</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.css">
+  <style>
+    @import url("https://file.gifan.id/fonts/gFont.css");
+
+    body {
+      font-family: "Pacifico", cursive;
+      font-family: "Signika Negative", sans-serif;
+    }
+
+    .fixed-bottom {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      z-index: 1030;
+    }
+
+    @media (min-height: 420px) {
+      .fixed-bottom {
+        position: fixed !important;
+        bottom: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Beli Token <span style="color: green;">(Otomatis)</span></h5>
+            <div class="alert alert-primary mt-2 mb-3">
+              Note: token akan langsung diterima ketika pembayaran sudah dilakukan.
+            </div>
+            <form id="purchaseForm" method="POST">
+              <div class="mb-3">
+                <label class="form-label">
+                  <i class="fa-sharp fa-solid fa-globe fa-beat"></i> Nama
+                </label>
+                <div class="input-group">
+                  <input type="text" name="name" class="form-control" placeholder="Nama anda" required>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">
+                  <i class="fa-sharp fa-regular fa-envelope fa-beat"></i> Email
+                </label>
+                <div class="input-group">
+                  <input type="email" name="email" class="form-control" placeholder="email@gmail.com" required>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">
+                  <i class="fa-sharp fa-solid fa-phone fa-beat"></i> Nomor HP/Telp
+                </label>
+                <div class="input-group">
+                  <input type="text" name="nope" class="form-control" placeholder="08XXXXXXXXXX" required>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">
+                  <i class="fa-solid fa-mobile-screen-button"></i> Metode Pembayaran
+                </label>
+                <select class="form-select" name="payment" required>
+                  <option selected disabled>Pilih metode pembayaran...</option>
+                  <option>QRIS</option>
+                </select>
+              </div>
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-block">
+                  <i class="fa-solid fa-right-to-bracket fa-fade"></i> Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="text-center" style="padding-top: 13rem;">
+      Copyright © 2023. Made with
+      <svg viewBox="0 0 1792 1792" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="height: 0.8rem;">
+        <path d="M896 1664q-26 0-44-18l-624-602q-10-8-27.5-26T145 952.5 77 855 23.5 734 0 596q0-220 127-344t351-124q62 0 126.5 21.5t120 58T820 276t76 68q36-36 76-68t95.5-68.5 120-58T1314 128q224 0 351 124t127 344q0 221-229 450l-623 600q-18 18-44 18z" fill="#e25555"></path>
+      </svg>
+      by <b>G-Code</b>
+    </p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
+  <script src="https://kit.fontawesome.com/f0b785de15.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.js"></script>
+  <script>
+    function generateUniqueCode() {
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      return `AGUS${randomNum}`;
+    }
+
+    document.getElementById('purchaseForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      var form = new FormData();
+      var uniqueCode = generateUniqueCode();
+      var key = "7e44ba61230790b72fcd4d00360a34ef";
+
+      form.append("key", key);
+      form.append("request", "new");
+      form.append("unique_code", uniqueCode);
+      form.append("service", "11");
+      form.append("amount", "300");
+      form.append("note", "WEB Purchase");
+      form.append("valid_time", "1800");
+      form.append("type_fee", "1");
+
+      var signature = md5(key + uniqueCode + "11" + "300" + "1800" + "NewTransaction");
+      form.append("signature", signature);
+
+      var settings = {
+        url: "https://api.paydisini.com/v1/",
+        method: "POST",
+        timeout: 0,
+        processData: false,
+        mimeType: "multipart/form-data",
+        contentType: false,
+        data: form
+      };
+
+      $.ajax(settings).done(function(response) {
+        try {
+          var jsonResponse = JSON.parse(response);
+          if (jsonResponse.qrcode_url) {
+            window.location.href = jsonResponse.qrcode_url;
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'Terjadi kesalahan, silakan coba lagi!'
+            });
+          }
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Respon dari server tidak valid!'
+          });
+        }
+      }).fail(function() {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Tidak dapat terhubung ke server, silakan coba lagi!'
+        });
+      });
+    });
+  </script>
+</body>
+</html>
