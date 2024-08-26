@@ -97,67 +97,76 @@
   <script src="https://kit.fontawesome.com/f0b785de15.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.js"></script>
   <script>
-    function generateUniqueCode() {
-      const randomNum = Math.floor(100000 + Math.random() * 900000);
-      return `AGUS${randomNum}`;
-    }
+<script>
+  function generateUniqueCode() {
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    return `AGUS${randomNum}`;
+  }
 
-    document.getElementById('purchaseForm').addEventListener('submit', function(event) {
-      event.preventDefault();
+  document.getElementById('purchaseForm').addEventListener('submit', function(event) {
+    event.preventDefault();
 
-      var form = new FormData();
-      var uniqueCode = generateUniqueCode();
-      var key = "7e44ba61230790b72fcd4d00360a34ef";
+    var form = new FormData();
+    var uniqueCode = generateUniqueCode();
+    var secret_key = "7e44ba61230790b72fcd4d00360a34ef";
 
-      form.append("key", key);
-      form.append("request", "new");
-      form.append("unique_code", uniqueCode);
-      form.append("service", "11");
-      form.append("amount", "300");
-      form.append("note", "WEB Purchase");
-      form.append("valid_time", "1800");
-      form.append("type_fee", "1");
+    var name = document.querySelector('input[name="name"]').value;
+    var email = document.querySelector('input[name="email"]').value;
+    var nope = document.querySelector('input[name="nope"]').value;
+    var payment = document.querySelector('select[name="payment"]').value;
 
-      var signature = md5(key + uniqueCode + "11" + "300" + "1800" + "NewTransaction");
-      form.append("signature", signature);
+    form.append("key", secret_key);
+    form.append("request", "new");
+    form.append("unique_code", uniqueCode);
+    form.append("service", "11");
+    form.append("amount", "300");
+    form.append("note", "WEB Purchase");
+    form.append("valid_time", "1800");
+    form.append("type_fee", "1");
+    form.append("name", name);
+    form.append("email", email);
+    form.append("nope", nope);
+    
+    var signature = md5(secret_key + uniqueCode + "11" + "300" + "1800" + "NewTransaction");
+    form.append("signature", signature);
 
-      var settings = {
-        url: "https://api.paydisini.com/v1/",
-        method: "POST",
-        timeout: 0,
-        processData: false,
-        mimeType: "multipart/form-data",
-        contentType: false,
-        data: form
-      };
+    var settings = {
+      url: "https://api.paydisini.com/v1/",
+      method: "POST",
+      timeout: 0,
+      processData: false,
+      mimeType: "multipart/form-data",
+      contentType: false,
+      data: form
+    };
 
-      $.ajax(settings).done(function(response) {
-        try {
-          var jsonResponse = JSON.parse(response);
-          if (jsonResponse.qrcode_url) {
-            window.location.href = jsonResponse.qrcode_url;
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Oops...',
-              text: 'Terjadi kesalahan, silakan coba lagi!'
-            });
-          }
-        } catch (error) {
+    $.ajax(settings).done(function(response) {
+      try {
+        var jsonResponse = JSON.parse(response);
+        if (jsonResponse.qrcode_url) {
+          window.location.href = jsonResponse.qrcode_url;
+        } else {
           Swal.fire({
             icon: 'error',
             title: 'Oops...',
-            text: 'Respon dari server tidak valid!'
+            text: 'Terjadi kesalahan, silakan coba lagi!'
           });
         }
-      }).fail(function() {
+      } catch (error) {
         Swal.fire({
           icon: 'error',
           title: 'Oops...',
-          text: 'Tidak dapat terhubung ke server, silakan coba lagi!'
+          text: 'Respon dari server tidak valid!'
         });
+      }
+    }).fail(function() {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Tidak dapat terhubung ke server, silakan coba lagi!'
       });
     });
-  </script>
+  });
+</script>
 </body>
 </html>
